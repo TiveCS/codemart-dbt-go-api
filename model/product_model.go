@@ -22,9 +22,9 @@ type ProductUsecase interface {
 }
 
 type ProductRepository interface {
-	FindAll() ([]*Product, error)
-	FindByID(id int) (*Product, error)
-	Create(product *Product) error
+	FindAll(ctx context.Context) ([]*Product, error)
+	FindByID(ctx context.Context, id int) (*Product, error)
+	Create(ctx context.Context, product *Product) error
 }
 
 type ProductController interface {
