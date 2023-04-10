@@ -10,7 +10,9 @@ func main() {
 	e := echo.New()
 
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
+		return c.JSON(http.StatusOK, map[string]string{
+			"message": "Hello, Shadow!",
+		})
 	})
 
 	e.Logger.Fatal(e.Start(":1323"))
