@@ -1,8 +1,9 @@
 package controller
 
 import (
-	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/TiveCS/codemart-dbt-go-api/model"
 	"github.com/labstack/echo/v4"
@@ -22,6 +23,7 @@ func (c *ProductController) RegisterProductUsecase(usecase model.ProductUsecase)
 }
 
 func (c *ProductController) GetAllProducts(eCtx echo.Context) error {
+	processStart := time.Now().UnixNano()
 	ctx := eCtx.Request().Context()
 
 	// Prepare response
@@ -40,43 +42,58 @@ func (c *ProductController) GetAllProducts(eCtx echo.Context) error {
 	data.Products = products
 
 	// Send response
-	res = model.NewResponse().WithMessage("Success get all products").WithData(data)
+	processEnd := time.Now().UnixNano()
+	res = model.NewResponse().WithMessage("Success get all products").WithData(data).WithProcessTime(processStart, processEnd)
 	return eCtx.JSON(http.StatusOK, res)
 }
 
 // CreateNewProduct implements model.ProductController
 func (c *ProductController) CreateNewProduct(eCtx echo.Context) error {
+	processStart := time.Now().UnixNano()
 	ctx := eCtx.Request().Context()
 
 	// Prepare response and request
 	res := new(model.Response)
 	req := new(model.CreateNewProductRequest)
-	data := new(model.CreateNewProductResponse)
 
 	// Validate request body
+	insertAmount := eCtx.QueryParam("amount")
+	if insertAmount == "" {
+		insertAmount = "1"
+	}
+
 	err := eCtx.Bind(req)
 	if err != nil {
 		res = model.NewResponse().WithMessage("Invalid request body")
 		return eCtx.JSON(http.StatusBadRequest, res)
 	}
 
-	// Convert request to product model
-	product := req.ToProduct()
+	amount, err := strconv.Atoi(insertAmount)
+	if err != nil {
+		res = model.NewResponse().WithMessage("Invalid request query")
+		return eCtx.JSON(http.StatusBadRequest, res)
+	}
 
 	// Attempt to persist the payload
-	insertedId, err := c.productUsecase.CreateNewProduct(ctx, product)
-	if err != nil {
-		res = model.NewResponse().WithMessage(err.Error())
-		return eCtx.JSON(http.StatusInternalServerError, res)
+	for i := 0; i < amount; i++ {
+		// Convert request to product model
+		product := req.ToProduct()
+
+		_, err := c.productUsecase.CreateNewProduct(ctx, product)
+		if err != nil {
+			res = model.NewResponse().WithMessage(err.Error())
+			return eCtx.JSON(http.StatusInternalServerError, res)
+		}
 	}
 
 	// Send response
-	data.ID = insertedId
-	res = model.NewResponse().WithMessage("Success create new product").WithData(data)
+	processEnd := time.Now().UnixNano()
+	res = model.NewResponse().WithMessage("Success create new product").WithProcessTime(processStart, processEnd)
 	return eCtx.JSON(http.StatusOK, res)
 }
 
 func (c *ProductController) GetProductByID(eCtx echo.Context) error {
+	processStart := time.Now().UnixNano()
 	ctx := eCtx.Request().Context()
 
 	// Prepare response and request
@@ -91,8 +108,6 @@ func (c *ProductController) GetProductByID(eCtx echo.Context) error {
 		return eCtx.JSON(http.StatusBadRequest, res)
 	}
 
-	log.Println(req.ID)
-
 	// Attempt to get product by id
 	product, err := c.productUsecase.GetProductByID(ctx, req.ID)
 	if err != nil {
@@ -101,9 +116,10 @@ func (c *ProductController) GetProductByID(eCtx echo.Context) error {
 	}
 
 	// Construct payload response
+	processEnd := time.Now().UnixNano()
 	data.Product = product
 
 	// Send response
-	res = model.NewResponse().WithMessage("Success get product by id").WithData(data)
+	res = model.NewResponse().WithMessage("Success get product by id").WithData(data).WithProcessTime(processStart, processEnd)
 	return eCtx.JSON(http.StatusOK, res)
 }
