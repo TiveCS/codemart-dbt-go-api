@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"log"
 
 	"github.com/TiveCS/codemart-dbt-go-api/db"
 	"github.com/TiveCS/codemart-dbt-go-api/model"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -19,15 +21,21 @@ func NewProductRepository() model.ProductRepository {
 }
 
 // Create implements model.ProductRepository
-func (r *productRepository) Create(ctx context.Context, product *model.Product) error {
-	r.productCollection.InsertOne(ctx, product)
-	return nil
+func (r *productRepository) Create(ctx context.Context, product *model.Product) (primitive.ObjectID, error) {
+	result, err := r.productCollection.InsertOne(ctx, product)
+
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
+
+	return result.InsertedID.(primitive.ObjectID), nil
 }
 
 // FindAll implements model.ProductRepository
 func (r *productRepository) FindAll(ctx context.Context) ([]*model.Product, error) {
-	result, err := r.productCollection.Find(ctx, nil)
+	result, err := r.productCollection.Find(ctx, map[string]any{})
 	if err != nil {
+		log.Println("Error while finding products: ", err)
 		return nil, err
 	}
 
@@ -36,6 +44,7 @@ func (r *productRepository) FindAll(ctx context.Context) ([]*model.Product, erro
 		var product *model.Product
 		err := result.Decode(&product)
 		if err != nil {
+			log.Println("Error while decoding product: ", err)
 			return nil, err
 		}
 
