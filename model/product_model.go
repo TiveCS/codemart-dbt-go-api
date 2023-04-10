@@ -19,20 +19,21 @@ type Product struct {
 type ProductUsecase interface {
 	CreateNewProduct(ctx context.Context, product *Product) (primitive.ObjectID, error)
 	GetAllProducts(ctx context.Context) ([]*Product, error)
-	GetProductByID(ctx context.Context, id int) (*Product, error)
+	GetProductByID(ctx context.Context, id string) (*Product, error)
 
 	RegisterProductRepository(repo ProductRepository)
 }
 
 type ProductRepository interface {
 	FindAll(ctx context.Context) ([]*Product, error)
-	FindByID(ctx context.Context, id int) (*Product, error)
+	FindByID(ctx context.Context, id primitive.ObjectID) (*Product, error)
 	Create(ctx context.Context, product *Product) (primitive.ObjectID, error)
 }
 
 type ProductController interface {
 	CreateNewProduct(eCtx echo.Context) error
 	GetAllProducts(eCtx echo.Context) error
+	GetProductByID(eCtx echo.Context) error
 
 	RegisterProductUsecase(usecase ProductUsecase)
 }
@@ -43,6 +44,23 @@ type CreateNewProductRequest struct {
 	Description string `json:"description"`
 	Price       int64  `json:"price"`
 	CoverURL    string `json:"cover_url"`
+}
+
+type CreateNewProductResponse struct {
+	ID primitive.ObjectID `json:"id"`
+}
+
+type GetAllProductsResponse struct {
+	Products []*Product `json:"products"`
+	Count    int        `json:"count"`
+}
+
+type GetProductByIDRequest struct {
+	ID string `json:"id" query:"id" param:"id" form:"id" bson:"_id"`
+}
+
+type GetProductByIDResponse struct {
+	Product *Product `json:"product"`
 }
 
 func (m *CreateNewProductRequest) ToProduct() *Product {

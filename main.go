@@ -1,8 +1,6 @@
 package main
 
 import (
-	"net/http"
-
 	"github.com/TiveCS/codemart-dbt-go-api/controller"
 	"github.com/TiveCS/codemart-dbt-go-api/db"
 	"github.com/TiveCS/codemart-dbt-go-api/repository"
@@ -21,14 +19,9 @@ func main() {
 	productController := controller.NewProductController()
 	productController.RegisterProductUsecase(productUsecase)
 
-	e.GET("/", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{
-			"message": "Hello, Shadow!",
-		})
-	})
-
 	e.POST("/products", productController.CreateNewProduct)
 	e.GET("/products", productController.GetAllProducts)
+	e.GET("/products/:id", productController.GetProductByID)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }

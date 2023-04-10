@@ -31,6 +31,11 @@ func (u *productUsecase) GetAllProducts(ctx context.Context) ([]*model.Product, 
 }
 
 // GetProductByID implements model.ProductUsecase
-func (u *productUsecase) GetProductByID(ctx context.Context, id int) (*model.Product, error) {
-	return u.productRepository.FindByID(ctx, id)
+func (u *productUsecase) GetProductByID(ctx context.Context, id string) (*model.Product, error) {
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return u.productRepository.FindByID(ctx, objID)
 }

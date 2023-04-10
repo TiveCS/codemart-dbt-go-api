@@ -2,10 +2,10 @@ package repository
 
 import (
 	"context"
-	"log"
 
 	"github.com/TiveCS/codemart-dbt-go-api/db"
 	"github.com/TiveCS/codemart-dbt-go-api/model"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -35,7 +35,6 @@ func (r *productRepository) Create(ctx context.Context, product *model.Product) 
 func (r *productRepository) FindAll(ctx context.Context) ([]*model.Product, error) {
 	result, err := r.productCollection.Find(ctx, map[string]any{})
 	if err != nil {
-		log.Println("Error while finding products: ", err)
 		return nil, err
 	}
 
@@ -44,7 +43,6 @@ func (r *productRepository) FindAll(ctx context.Context) ([]*model.Product, erro
 		var product *model.Product
 		err := result.Decode(&product)
 		if err != nil {
-			log.Println("Error while decoding product: ", err)
 			return nil, err
 		}
 
@@ -54,10 +52,8 @@ func (r *productRepository) FindAll(ctx context.Context) ([]*model.Product, erro
 }
 
 // FindByID implements model.ProductRepository
-func (r *productRepository) FindByID(ctx context.Context, id int) (*model.Product, error) {
-	result := r.productCollection.FindOne(ctx, map[string]interface{}{
-		"id": id,
-	})
+func (r *productRepository) FindByID(ctx context.Context, id primitive.ObjectID) (*model.Product, error) {
+	result := r.productCollection.FindOne(ctx, bson.M{"_id": id})
 
 	var product *model.Product
 	err := result.Decode(&product)
