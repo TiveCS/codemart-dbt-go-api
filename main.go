@@ -19,9 +19,19 @@ func main() {
 	productController := controller.NewProductController()
 	productController.RegisterProductUsecase(productUsecase)
 
+	reviewRepository := repository.NewReviewRepository()
+	reviewUsecase := usecase.NewReviewUsecase()
+	reviewUsecase.RegisterReviewRepository(reviewRepository)
+	reviewController := controller.NewReviewController()
+	reviewController.RegisterReviewUsecase(reviewUsecase)
+
 	e.POST("/products", productController.CreateNewProduct)
 	e.GET("/products", productController.GetAllProducts)
 	e.GET("/products/:id", productController.GetProductByID)
+
+	e.POST("/products/:product_id/reviews", reviewController.CreateNewReview)
+	e.GET("/products/:product_id/reviews", reviewController.GetReviewsByProductID)
+	e.GET("/reviews", reviewController.GetAllReviews)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }

@@ -14,6 +14,7 @@ type Product struct {
 	Description string             `bson:"description" json:"description"`
 	Price       int64              `bson:"price" json:"price"`
 	CoverURL    string             `bson:"cover_url" json:"cover_url"`
+	Reviews     []*Review          `bson:"reviews" json:"reviews"`
 }
 
 type ProductUsecase interface {
@@ -71,5 +72,6 @@ func (m *CreateNewProductRequest) ToProduct() *Product {
 		Description: m.Description,
 		Price:       m.Price,
 		CoverURL:    m.CoverURL,
+		Reviews:     []*Review{},
 	}
 }

@@ -10,6 +10,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+var (
+	allProducts          = []*model.Product{}
+	allProductsHasUpdate = true
+)
+
 type productRepository struct {
 	productCollection *mongo.Collection
 }
@@ -28,11 +33,17 @@ func (r *productRepository) Create(ctx context.Context, product *model.Product) 
 		return primitive.NilObjectID, err
 	}
 
+	allProductsHasUpdate = true
+
 	return result.InsertedID.(primitive.ObjectID), nil
 }
 
 // FindAll implements model.ProductRepository
 func (r *productRepository) FindAll(ctx context.Context) ([]*model.Product, error) {
+	if !allProductsHasUpdate {
+		return allProducts, nil
+	}
+
 	result, err := r.productCollection.Find(ctx, map[string]any{})
 	if err != nil {
 		return nil, err
@@ -48,6 +59,12 @@ func (r *productRepository) FindAll(ctx context.Context) ([]*model.Product, erro
 
 		products = append(products, product)
 	}
+
+	if allProductsHasUpdate {
+		allProducts = products
+		allProductsHasUpdate = false
+	}
+
 	return products, nil
 }
 

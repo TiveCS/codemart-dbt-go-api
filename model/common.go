@@ -3,9 +3,11 @@ package model
 import "time"
 
 type Response struct {
-	Message     string `json:"message,omitempty"`
-	Data        any    `json:"data,omitempty"`
-	ProcessTime string `json:"process_time,omitempty"`
+	Message      string `json:"message,omitempty"`
+	Data         any    `json:"data,omitempty"`
+	ProcessTime  string `json:"process_time,omitempty"`
+	ProcessStart int64  `json:"process_start,omitempty"`
+	ProcessEnd   int64  `json:"process_end,omitempty"`
 }
 
 func NewResponse() *Response {
@@ -24,5 +26,7 @@ func (r *Response) WithData(data any) *Response {
 
 func (r *Response) WithProcessTime(processStart int64, processEnd int64) *Response {
 	r.ProcessTime = time.Duration(processEnd - processStart).String()
+	r.ProcessStart = processStart
+	r.ProcessEnd = processEnd
 	return r
 }
