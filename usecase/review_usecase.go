@@ -25,16 +25,6 @@ func (u *reviewUsecase) GetAllReviews(ctx context.Context) ([]*model.Review, err
 	return u.reviewRepository.GetAllReviews(ctx)
 }
 
-// GetReviewByID implements model.ReviewUsecase
-func (u *reviewUsecase) GetReviewByID(ctx context.Context, id string) (*model.Review, error) {
-	objID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-
-	return u.reviewRepository.GetReviewByID(ctx, objID)
-}
-
 // GetReviewsByProductID implements model.ReviewUsecase
 func (u *reviewUsecase) GetReviewsByProductID(ctx context.Context, productID string) ([]*model.Review, error) {
 	productObjID, err := primitive.ObjectIDFromHex(productID)

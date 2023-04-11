@@ -17,14 +17,12 @@ type Review struct {
 
 type ReviewRepository interface {
 	CreateNewReview(ctx context.Context, review *Review) (*Review, error)
-	GetReviewByID(ctx context.Context, id primitive.ObjectID) (*Review, error)
 	GetReviewsByProductID(ctx context.Context, productID primitive.ObjectID) ([]*Review, error)
 	GetAllReviews(ctx context.Context) ([]*Review, error)
 }
 
 type ReviewUsecase interface {
 	CreateNewReview(ctx context.Context, review *Review) (*Review, error)
-	GetReviewByID(ctx context.Context, id string) (*Review, error)
 	GetReviewsByProductID(ctx context.Context, productID string) ([]*Review, error)
 	GetAllReviews(ctx context.Context) ([]*Review, error)
 
@@ -35,7 +33,6 @@ type ReviewController interface {
 	RegisterReviewUsecase(usecase ReviewUsecase)
 
 	CreateNewReview(eCtx echo.Context) error
-	GetReviewByID(eCtx echo.Context) error
 	GetReviewsByProductID(eCtx echo.Context) error
 	GetAllReviews(eCtx echo.Context) error
 }

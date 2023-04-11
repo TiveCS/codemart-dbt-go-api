@@ -14,6 +14,9 @@ import (
 var (
 	allReviews          = []*model.Review{}
 	allReviewsHasUpdate = true
+
+	reviewsCache          = map[primitive.ObjectID][]*model.Review{}
+	reviewsCacheHasUpdate = map[primitive.ObjectID]bool{}
 )
 
 type reviewRepository struct {
@@ -34,6 +37,8 @@ func (r *reviewRepository) CreateNewReview(ctx context.Context, review *model.Re
 	}
 
 	allReviewsHasUpdate = true
+	reviewsCacheHasUpdate[review.ProductID] = true
+	productsCacheHasUpdate[review.ProductID] = true
 
 	return review, err
 }
@@ -68,30 +73,19 @@ func (r *reviewRepository) GetAllReviews(ctx context.Context) ([]*model.Review, 
 		returnReviews = append(returnReviews, product.Reviews...)
 	}
 
-	if allReviewsHasUpdate {
-		allReviews = returnReviews
-		allReviewsHasUpdate = false
-	}
+	allReviews = returnReviews
+	allReviewsHasUpdate = false
 
 	return returnReviews, nil
 }
 
-// GetReviewByID implements model.ReviewRepository
-func (r *reviewRepository) GetReviewByID(ctx context.Context, id primitive.ObjectID) (*model.Review, error) {
-	result := r.productCollection.FindOne(ctx, bson.M{"_id": id})
-
-	var review *model.Review
-	err := result.Decode(&review)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return review, nil
-}
-
 // GetReviewsByProductID implements model.ReviewRepository
 func (r *reviewRepository) GetReviewsByProductID(ctx context.Context, productID primitive.ObjectID) ([]*model.Review, error) {
+	cache := reviewsCache[productID]
+	if cache != nil && !reviewsCacheHasUpdate[productID] {
+		return cache, nil
+	}
+
 	productResult := r.productCollection.FindOne(ctx, bson.M{"_id": productID})
 
 	if productResult.Err() != nil {
@@ -107,6 +101,9 @@ func (r *reviewRepository) GetReviewsByProductID(ctx context.Context, productID 
 
 	var reviews []*model.Review
 	reviews = append(reviews, product.Reviews...)
+
+	reviewsCache[productID] = reviews
+	reviewsCacheHasUpdate[productID] = false
 
 	return reviews, nil
 }

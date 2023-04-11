@@ -6,6 +6,7 @@ import (
 	"github.com/TiveCS/codemart-dbt-go-api/repository"
 	"github.com/TiveCS/codemart-dbt-go-api/usecase"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -24,6 +25,9 @@ func main() {
 	reviewUsecase.RegisterReviewRepository(reviewRepository)
 	reviewController := controller.NewReviewController()
 	reviewController.RegisterReviewUsecase(reviewUsecase)
+
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
 	e.POST("/products", productController.CreateNewProduct)
 	e.GET("/products", productController.GetAllProducts)

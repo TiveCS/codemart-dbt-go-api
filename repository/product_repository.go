@@ -11,8 +11,11 @@ import (
 )
 
 var (
-	allProducts          = []*model.Product{}
+	allProductsCache     = []*model.Product{}
 	allProductsHasUpdate = true
+
+	productsCache          = map[primitive.ObjectID]*model.Product{}
+	productsCacheHasUpdate = map[primitive.ObjectID]bool{}
 )
 
 type productRepository struct {
@@ -41,10 +44,10 @@ func (r *productRepository) Create(ctx context.Context, product *model.Product) 
 // FindAll implements model.ProductRepository
 func (r *productRepository) FindAll(ctx context.Context) ([]*model.Product, error) {
 	if !allProductsHasUpdate {
-		return allProducts, nil
+		return allProductsCache, nil
 	}
 
-	result, err := r.productCollection.Find(ctx, map[string]any{})
+	result, err := r.productCollection.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, err
 	}
@@ -60,16 +63,20 @@ func (r *productRepository) FindAll(ctx context.Context) ([]*model.Product, erro
 		products = append(products, product)
 	}
 
-	if allProductsHasUpdate {
-		allProducts = products
-		allProductsHasUpdate = false
-	}
+	allProductsCache = products
+	allProductsHasUpdate = false
 
 	return products, nil
 }
 
 // FindByID implements model.ProductRepository
 func (r *productRepository) FindByID(ctx context.Context, id primitive.ObjectID) (*model.Product, error) {
+	cache := productsCache[id]
+	hasUpdate := productsCacheHasUpdate[id]
+	if cache != nil && !hasUpdate {
+		return cache, nil
+	}
+
 	result := r.productCollection.FindOne(ctx, bson.M{"_id": id})
 
 	var product *model.Product
@@ -77,6 +84,9 @@ func (r *productRepository) FindByID(ctx context.Context, id primitive.ObjectID)
 	if err != nil {
 		return nil, err
 	}
+
+	productsCache[id] = product
+	productsCacheHasUpdate[id] = false
 
 	return product, nil
 }

@@ -78,28 +78,6 @@ func (c *reviewController) GetAllReviews(eCtx echo.Context) error {
 	return eCtx.JSON(http.StatusOK, res)
 }
 
-// GetReviewByID implements model.ReviewController
-func (c *reviewController) GetReviewByID(eCtx echo.Context) error {
-	processStart := time.Now().UnixNano()
-	ctx := eCtx.Request().Context()
-
-	res := new(model.Response)
-	data := new(model.GetReviewByIDResponse)
-
-	id := eCtx.Param("id")
-	review, err := c.reviewUsecase.GetReviewByID(ctx, id)
-	if err != nil {
-		res = model.NewResponse().WithMessage(err.Error())
-		return eCtx.JSON(http.StatusInternalServerError, res)
-	}
-
-	data.Review = review
-
-	processEnd := time.Now().UnixNano()
-	res = model.NewResponse().WithMessage("Success get review by id").WithData(data).WithProcessTime(processStart, processEnd)
-	return eCtx.JSON(http.StatusOK, res)
-}
-
 // GetReviewsByProductID implements model.ReviewController
 func (c *reviewController) GetReviewsByProductID(eCtx echo.Context) error {
 	processStart := time.Now().UnixNano()
