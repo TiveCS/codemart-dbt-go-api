@@ -27,6 +27,15 @@ func getMongoURI() string {
 	return os.Getenv("MONGODB_URI")
 }
 
+func getMongoDatabaseName() string {
+	env := godotenv.Load()
+	if env != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	return os.Getenv("MONGODB_DATABASE")
+}
+
 func ConnectMongo() {
 	uri := getMongoURI()
 	options := options.Client().ApplyURI(uri)
@@ -59,4 +68,9 @@ func GetMongoClient() *mongo.Client {
 	})
 
 	return client
+}
+
+func GetMongoCollection(collection string) *mongo.Collection {
+	dbName := getMongoDatabaseName()
+	return GetMongoClient().Database(dbName).Collection(collection)
 }
